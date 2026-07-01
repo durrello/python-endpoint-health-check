@@ -95,3 +95,14 @@ def test_main_exit_code_up():
     with patch("check_endpoint.requests.get", return_value=_FakeResp(200)):
         rc = ce.main(["https://example.com"])
     assert rc == 0
+
+
+def test_load_urls_from_file_skips_blanks_and_comments(tmp_path):
+    f = tmp_path / "endpoints.txt"
+    f.write_text(
+        "https://a.com\n"
+        "\n"
+        "# a comment\n"
+        "  https://b.com  \n"
+    )
+    assert ce.load_urls_from_file(str(f)) == ["https://a.com", "https://b.com"]

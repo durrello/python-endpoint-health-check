@@ -110,9 +110,22 @@ def _print_text(results: list[CheckResult]) -> None:
         print(f"[{status}] {r.url}  {latency}  code={r.status_code or '—'}{detail}")
 
 
+def load_urls_from_file(path: str) -> list[str]:
+    """Read URLs from a file, one per line. Blank lines and `#` comments are ignored."""
+    urls: list[str] = []
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                urls.append(line)
+    return urls
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Check the health of HTTP endpoints.")
     parser.add_argument("urls", nargs="*", help="URLs to check (defaults to a built-in list).")
+    parser.add_argument("-f", "--file",
+                        help="Read URLs from a file (one per line; # comments allowed).")
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT,
                         help="Per-request timeout in seconds.")
     parser.add_argument("--retries", type=int, default=DEFAULT_RETRIES,
@@ -125,7 +138,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     accepted = _parse_accept(args.accept)
-    urls = args.urls or DEFAULT_URLS
+    urls = list(args.urls)
+    if args.file:
+        urls.extend(load_urls_from_file(args.file))
+    urls = urls or DEFAULT_URLS
     results = check_all(urls, args.timeout, args.retries, args.workers, accepted)
 
     if args.json:
