@@ -19,8 +19,8 @@ import json
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, asdict
-from typing import Iterable
+from dataclasses import asdict, dataclass
+from collections.abc import Iterable
 
 import requests
 
